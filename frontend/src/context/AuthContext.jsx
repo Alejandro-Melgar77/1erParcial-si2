@@ -5,28 +5,47 @@ export const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
-  // Cuando inicia la app, cargar tokens desde localStorage
+  // 🔹 Cargar usuario desde localStorage al inicio
   useEffect(() => {
-    const access = localStorage.getItem("access");
-    const refresh = localStorage.getItem("refresh");
-    if (access && refresh) {
-      setUser({ access, refresh });
+    try {
+      const access = localStorage.getItem("access");
+      const refresh = localStorage.getItem("refresh");
+      const storedUser = localStorage.getItem("user");
+
+      if (access && refresh && storedUser) {
+        setUser({
+          access,
+          refresh,
+          ...JSON.parse(storedUser), // 👈 guardamos también los datos del usuario
+        });
+      }
+    } catch (err) {
+      console.error("Error cargando user desde localStorage:", err);
+      setUser(null);
     }
   }, []);
 
-  // Función de login → guarda tokens y estado
-  const login = (tokens) => {
-    localStorage.setItem("access", tokens.access);
-    localStorage.setItem("refresh", tokens.refresh);
-    setUser(tokens);
+  // 🔹 Login → guardar en localStorage y en el estado
+  const login = (data) => {
+    // data debe venir como { access, refresh, user: { username, email, role, ... } }
+    localStorage.setItem("access", data.access);
+    localStorage.setItem("refresh", data.refresh);
+    localStorage.setItem("user", JSON.stringify(data.user));
+
+    setUser({
+      access: data.access,
+      refresh: data.refresh,
+      ...data.user,
+    });
   };
 
-  // Función de logout → limpia todo
+  // 🔹 Logout → limpiar todo
   const logout = () => {
-    localStorage.removeItem("access");
-    localStorage.removeItem("refresh");
+    localStorage.clear();
     setUser(null);
   };
+
+  console.log("AuthContext user en render:", user);
 
   return (
     <AuthContext.Provider value={{ user, login, logout }}>
