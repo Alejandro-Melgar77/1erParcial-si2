@@ -10,6 +10,7 @@ class CustomUserAdmin(UserAdmin):
     # Campos que se mostrarán en la lista
     list_display = (
         'username',
+        
         'email',
         'first_name',
         'last_name',
